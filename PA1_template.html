@@ -164,10 +164,8 @@ plot(y$interval, y$steps,type = &quot;l&quot;)</code></pre>
 <p>The stratagy I have chosen is to take the rounded interval mean and assign this to the missing values. This strategy is implemented in the following code - resulting in data frame activity2 which is equal to the original dataset but with the missing values filled in. The effect of imputing values in this case is to skew the data to the left as most of the missing values appeared to be in the early intervals.</p>
 <pre class="r"><code>intervalMeans &lt;- round(aggregate(steps ~ interval, data = activity, mean))
 z &lt;- merge(activity, intervalMeans, by.x = &quot;interval&quot;, by.y = &quot;interval&quot;)
-z$steps.x[is.na(z$steps.x)==TRUE] &lt;- z$steps.y</code></pre>
-<pre><code>## Warning in z$steps.x[is.na(z$steps.x) == TRUE] &lt;- z$steps.y: number of
-## items to replace is not a multiple of replacement length</code></pre>
-<pre class="r"><code>activity2 &lt;- data.frame(steps = z$steps.x, date = z$date, interval = z$interval)
+z$steps.x[is.na(z$steps.x)==TRUE] &lt;- z$steps.y
+activity2 &lt;- data.frame(steps = z$steps.x, date = z$date, interval = z$interval)
 head(activity2)</code></pre>
 <pre><code>##   steps       date interval
 ## 1     2 2012-10-01        0
