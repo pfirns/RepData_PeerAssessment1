@@ -1,25 +1,87 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Project 1"
+author: "pfirns"
+date: "7 March 2016"
+output: html_document
 ---
 
-
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 
 
-## What is the average daily activity pattern?
+###1. Code for reading in the dataset and/or processing the data
+
+```{r 1}
+temp <- tempfile()
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",temp)
+activity <- read.csv(unz(temp, "activity.csv"))
+unlink(temp)
+head(activity)
+```
+
+###2. Histogram of the total number of steps taken each day
+```{r 2}
+x <- aggregate(steps ~ date, data = activity, sum)
+hist(x$steps)
+```
+
+###3. Mean and median number of steps taken each day
+```{r 3}
+mean(x$steps)
+median(x$steps)
+```
+
+###4. Time series plot of the average number of steps taken
+```{r 4}
+y <- aggregate(steps ~ interval, data = activity, mean)
+plot(y$interval, y$steps,type = "l")
+```
+
+###5. The 5-minute interval that, on average, contains the maximum number of steps
+Using the subset function to retrieve the row where the average number of steps by interval is equal to the maximum for all intervals, the result is: 
+**Interval 835 with average 206.1698 steps**
+```{r 5}
+subset(y[y$steps==max(y$steps),])
+```
+
+###6. Code to describe and show a strategy for imputing missing data
+
+First, calculate the total number of missing values: 
+```{r 6a}
+sum(is.na(activity$steps))
+```
+
+The stratagy I have chosen is to take the rounded interval mean and assign this to the missing values. This strategy is implemented in the following code - resulting in data frame activity2 which is equal to the original dataset but with the missing values filled in. 
+The effect of imputing values in this case is to skew the data to the left as most of the missing values appeared to be in the early intervals. 
+```{r 6b}
+intervalMeans <- round(aggregate(steps ~ interval, data = activity, mean))
+z <- merge(activity, intervalMeans, by.x = "interval", by.y = "interval")
+z$steps.x[is.na(z$steps.x)==TRUE] <- z$steps.y
+activity2 <- data.frame(steps = z$steps.x, date = z$date, interval = z$interval)
+head(activity2)
+```
+
+###7. Histogram of the total number of steps taken each day after missing values are imputed
+
+First, the data is aggregated and then the histogram created. 
+```{r 7}
+x2 <- aggregate(steps ~ date, data = activity2, sum)
+hist(x2$steps)
+```
+
+###8. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+```{r 8}
+library(lattice)
+activity2$date <- as.Date(activity2$date)
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+activity2$wDay <- factor((weekdays(activity2$date) %in% weekdays1), levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+activity3 <- aggregate(steps ~ interval + wDay, data = activity2, sum)
+xyplot(steps~interval|wDay,activity3,type='l')
+```
 
 
+###9. All of the R code needed to reproduce the results (numbers, plots, etc.) in the report
 
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+Code is included in all of the above above steps
